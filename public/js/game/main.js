@@ -33,25 +33,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const game = new Phaser.Game(config);
   window.phaserGame = game;
 
-  // Xử lý bật âm thanh sau lần click chuột đầu tiên (yêu cầu của trình duyệt Chrome/Edge/OBS)
-  const enableAudioOverlay = document.getElementById('audio-unlock-overlay');
-  const enableAudio = () => {
+  // Tự động kích hoạt âm thanh Web Audio & TTS
+  const triggerAudio = () => {
     if (window.soundManager) {
       window.soundManager.ensureContext();
-      if ('speechSynthesis' in window) {
+      if ('speechSynthesis' in window && window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
     }
-    if (enableAudioOverlay) {
-      enableAudioOverlay.style.display = 'none';
-    }
-    document.removeEventListener('click', enableAudio);
   };
-  document.addEventListener('click', enableAudio);
-
-  // Lắng nghe sự kiện click nút bật âm thanh
-  const btnUnlock = document.getElementById('btn-unlock-audio');
-  if (btnUnlock) {
-    btnUnlock.addEventListener('click', enableAudio);
-  }
+  ['click', 'touchstart', 'mousedown', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, triggerAudio, { once: true, passive: true });
+  });
 });

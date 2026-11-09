@@ -26,14 +26,37 @@ class SoundManager {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       this.audioCtx = new AudioContext();
+      this.autoUnlockAudio();
     } catch (e) {
       console.warn('Web Audio API không được hỗ trợ trên trình duyệt này');
     }
   }
 
+  autoUnlockAudio() {
+    // 1. Tự động kích hoạt ngay lập tức (hoạt động 100% trong OBS Browser Source CEF)
+    this.ensureContext();
+
+    // 2. Tự động mở khóa âm thanh bằng bất kỳ tương tác nào mà không cần bấm nút riêng
+    const unlockEvents = ['click', 'touchstart', 'touchend', 'keydown', 'mousedown'];
+    const unlock = () => {
+      this.ensureContext();
+      if (this.audioCtx && this.audioCtx.state === 'running') {
+        unlockEvents.forEach(evt => window.removeEventListener(evt, unlock, true));
+      }
+    };
+    unlockEvents.forEach(evt => window.addEventListener(evt, unlock, true));
+
+    // 3. Tự động thử lại khi tài liệu tải xong
+    if (document.readyState === 'complete') {
+      this.ensureContext();
+    } else {
+      window.addEventListener('load', () => this.ensureContext(), { once: true });
+    }
+  }
+
   ensureContext() {
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
+      this.audioCtx.resume().catch(() => {});
     }
   }
 

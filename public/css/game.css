@@ -257,41 +257,6 @@ body.layout-16-9 #live-leaderboard {
   flex-shrink: 0;
 }
 
-/* Audio unlock modal for OBS / Browser */
-#audio-unlock-overlay {
-  position: absolute;
-  bottom: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  padding: 10px 22px;
-  border-radius: 30px;
-  border: 1px solid #ffd700;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 99;
-  cursor: pointer;
-  animation: pulse 2s infinite;
-}
-
-#audio-unlock-overlay button {
-  background: #f1c40f;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-weight: bold;
-  color: #000;
-  cursor: pointer;
-}
-
-@keyframes pulse {
-  0% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.04); }
-  100% { transform: translateX(-50%) scale(1); }
-}
-
 /* Live Instructions Strip: Cố định ở dưới cùng màn hình */
 #live-instructions-strip {
   position: absolute;
