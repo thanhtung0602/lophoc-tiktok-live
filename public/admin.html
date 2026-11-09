@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Quản Trị - Lớp Học TikTok LIVE</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <header>
+      <div class="title-area">
+        <h1>⚙️ Quản Trị Lớp Học TikTok LIVE</h1>
+        <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Trung tâm kiểm soát tiết học, câu hỏi, AI giáo viên và luồng livestream</p>
+      </div>
+
+      <div class="nav-tabs">
+        <button class="tab-btn active" data-tab="tab-live">🔴 Điều Khiển LIVE</button>
+        <button class="tab-btn" data-tab="tab-ai">✨ Tạo Câu Hỏi AI</button>
+        <button class="tab-btn" data-tab="tab-questions">📚 Ngân Hàng Câu Hỏi</button>
+        <button class="tab-btn" data-tab="tab-obs">🎬 Cấu Hình OBS</button>
+      </div>
+    </header>
+
+    <!-- Thống kê trạng thái trực tiếp -->
+    <div class="status-grid" style="grid-template-columns: repeat(5, 1fr);">
+      <div class="stat-card">
+        <div class="stat-label">Trạng thái lớp học</div>
+        <div class="stat-value" id="stat-state" style="color: #10b981;">WAITING</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Thời gian tiết học (10p)</div>
+        <div class="stat-value" id="stat-period-timer" style="color: #38bdf8;">10:00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Môn học hiện tại</div>
+        <div class="stat-value" id="stat-subject" style="color: #f1c40f; font-size: 18px;">Toán học</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Học sinh trong lớp</div>
+        <div class="stat-value" id="stat-students" style="color: #2ecc71;">0/30 (Chờ: 0)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tiến trình câu hỏi</div>
+        <div class="stat-value" id="stat-question" style="font-size: 13px; color: #cbd5e1;">Chưa bắt đầu</div>
+      </div>
+    </div>
+
+    <!-- TAB 1: ĐIỀU KHIỂN LIVE -->
+    <div id="tab-live" class="tab-content">
+      <div class="control-panel">
+        <h2>🔴 Kết Nối TikTok LIVE Thực Tế</h2>
+        <div class="action-row" style="margin-bottom: 20px; align-items: center; background: #0f172a; padding: 14px 18px; border-radius: 8px; border: 1px solid #334155;">
+          <label style="color: #cbd5e1; font-weight: bold;">Tên kênh TikTok (@username):</label>
+          <input type="text" id="txt-tiktok-username" placeholder="Ví dụ: thay_giao_ba (hoặc link live)" style="padding: 9px 14px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; width: 230px;">
+          <button class="btn-start" id="btn-connect-tiktok" style="background: #ef4444;">🔴 Kết Nối LIVE Trực Tiếp</button>
+          <button class="btn-pause" id="btn-disconnect-tiktok" style="background: #475569;">🟡 Về Chế Độ Giả Lập</button>
+          <span id="tiktok-status-badge" style="margin-left: auto; font-size: 13px; font-weight: bold; color: #f59e0b;">
+            Trạng thái: 🟡 Đang chạy Giả lập (Mock)
+          </span>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #1e293b; margin: 16px 0;">
+
+        <h2>🎮 Bàn Điều Khiển Phiên Học</h2>
+        <div class="action-row" style="margin-bottom: 16px;">
+          <label style="color: #94a3b8; font-weight: bold;">Chọn môn học:</label>
+          <select id="sel-subject" style="width: 220px;"></select>
+          <button class="btn-start" id="btn-start-session">🚀 Bắt Đầu Tiết Học</button>
+          <a href="/game" target="_blank" style="text-decoration: none;">
+            <button class="btn-next" style="background: #475569;">👁️ Xem Màn Hình Game</button>
+          </a>
+          <a href="/simulator" target="_blank" style="text-decoration: none;">
+            <button class="btn-next" style="background: #475569;">🧪 Mở Giả Lập Chat</button>
+          </a>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #1e293b; margin: 16px 0;">
+
+        <h2>⚡ Tương Tác Với Câu Hỏi Hiện Tại</h2>
+        <div class="action-row">
+          <button class="btn-start" id="btn-toggle-autopilot" style="background: #0ea5e9;">🤖 Treo Live Tự Động: BẬT</button>
+          <button class="btn-start" id="btn-toggle-autokick" style="background: #8b5cf6;">📱 Lướt Live Tự Out: 1 Câu</button>
+          <button class="btn-next" id="btn-next">➡️ Câu Hỏi Tiếp Theo</button>
+          <button class="btn-pause" id="btn-pause">⏸️ Tạm Dừng</button>
+          <button class="btn-skip" id="btn-skip">⏭️ Bỏ Qua</button>
+          <button class="btn-reveal" id="btn-reveal">🔔 Công Bố Đáp Án Sớm</button>
+          <button class="btn-voice" id="btn-voice">🔊 Đọc Lại Bằng AI</button>
+          <button class="btn-danger" id="btn-end-period" style="background: #e11d48;">🏆 Kết Thúc Tiết & Trao Giải Top 3</button>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #1e293b; margin: 16px 0;">
+
+        <h2>👥 Quản Lý Học Sinh & Hàng Chờ (30 Bàn)</h2>
+        <div class="action-row">
+          <button class="btn-start" id="btn-admin-fill-30" style="background: #0ea5e9;">🚀 Lấp Đầy 30 Học Sinh</button>
+          <button class="btn-next" id="btn-admin-add-10" style="background: #10b981;">➕ Thêm 10 Học Sinh (Vào Hàng Chờ)</button>
+          <button class="btn-skip" id="btn-admin-clear-bots" style="background: #d97706;">🤖🧹 Xóa Học Sinh Ảo (Giữ Người Xem Thật)</button>
+          <button class="btn-skip" id="btn-admin-kick-1" style="background: #e11d48;">🚪 Cho 1 Học Sinh Rời Lớp (Hàng Chờ Vào Thay)</button>
+          <button class="btn-pause" id="btn-admin-reset-students" style="background: #475569;">🧹 Làm Trống Toàn Bộ (Reset)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: TẠO CÂU HỎI BẰNG AI -->
+    <div id="tab-ai" class="tab-content" style="display: none;">
+      <div class="control-panel">
+        <h2>✨ Trợ Lý AI Soạn Câu Hỏi Tự Động</h2>
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 16px;">Sử dụng mô hình AI thông minh (Google Gemini / Smart Generator) để tự sinh câu hỏi chuẩn chương trình học, có sẵn 4 đáp án và lời giải chi tiết.</p>
+
+        <div class="action-row" style="margin-bottom: 16px;">
+          <div>
+            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Môn học:</label>
+            <select id="sel-ai-subject" style="width: 200px;"></select>
+          </div>
+
+          <div style="flex: 1;">
+            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Chủ đề chi tiết (Tùy chọn):</label>
+            <input type="text" id="txt-ai-topic" placeholder="Ví dụ: Phép nhân phân số, Khí hậu nhiệt đới, Ca dao..." style="width: 100%;">
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Độ khó:</label>
+            <select id="sel-ai-diff" style="width: 140px;">
+              <option value="EASY">Dễ</option>
+              <option value="MEDIUM" selected>Trung bình</option>
+              <option value="HARD">Nâng cao</option>
+            </select>
+          </div>
+
+          <div style="align-self: flex-end;">
+            <button class="btn-start" id="btn-ai-generate">✨ Tạo Câu Hỏi Bằng AI</button>
+          </div>
+        </div>
+
+        <div id="ai-results-box" style="margin-top: 20px;">
+          <div style="color: #64748b; font-size: 13px;">Kết quả câu hỏi AI tạo sẽ xuất hiện tại đây...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: NGÂN HÀNG CÂU HỎI -->
+    <div id="tab-questions" class="tab-content" style="display: none;">
+      <div class="table-wrapper">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <h2 style="font-size: 18px; margin: 0;">📚 Danh Sách Câu Hỏi Trong Hệ Thống</h2>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 13px; color: #94a3b8;">Lọc theo môn:</label>
+            <select id="sel-filter-subject" style="padding: 6px 12px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 13px;">
+              <option value="ALL">Tất cả môn học (1,500 câu)</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Môn học</th>
+              <th>Nội dung câu hỏi</th>
+              <th>Đáp án đúng</th>
+              <th>Độ khó</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody id="questions-tbody">
+            <!-- Render via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: CẤU HÌNH OBS STUDIO -->
+    <div id="tab-obs" class="tab-content" style="display: none;">
+      <div class="control-panel">
+        <h2>🎬 Hướng Dẫn Tích Hợp Vào OBS Studio Để Phát TikTok LIVE</h2>
+        
+        <div class="obs-guide-box">
+          <b>Bước 1: Thiết lập Canvas OBS cho TikTok LIVE Dọc (9:16)</b><br>
+          - Vào <b>Cài đặt (Settings)</b> &gt; <b>Video</b> trong OBS.<br>
+          - Đặt <b>Base Canvas Resolution</b>: <code>1080 x 1920</code> (hoặc <code>720 x 1280</code>).<br>
+          - Đặt FPS: <code>60 FPS</code>.<br><br>
+
+          <b>Bước 2: Thêm Trình Duyệt (Browser Source)</b><br>
+          - Trong mục Nguồn (Sources), nhấp <b>[+]</b> &gt; chọn <b>Browser (Trình duyệt)</b>.<br>
+          - URL cho định dạng Dọc (TikTok): <code>http://localhost:3000/game?layout=9:16</code><br>
+          - URL cho định dạng Ngang (16:9): <code>http://localhost:3000/game?layout=16:9</code><br>
+          - URL nền trong suốt (Overlay): <code>http://localhost:3000/game?layout=9:16&overlay=true</code><br>
+          - Chiều rộng (Width): <code>1080</code> (hoặc <code>720</code>).<br>
+          - Chiều cao (Height): <code>1920</code> (hoặc <code>1280</code>).<br>
+          - Đánh dấu chọn: <b>"Control audio via OBS" (Điều khiển âm thanh qua OBS)</b>.<br><br>
+
+          <b>Bước 3: Tương tác và kiểm tra âm thanh</b><br>
+          - Nhấp chuột phải vào nguồn Browser trong OBS &gt; chọn <b>Interact (Tương tác)</b> &gt; nhấp nút <b>"BẬT NGAY"</b> để cho phép trình duyệt phát âm thanh và giọng đọc giáo viên AI.<br>
+          - Mở tab <b>Giả Lập Chat</b> trên trình duyệt khác để thử nghiệm bình luận JOIN và đáp án!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

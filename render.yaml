@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: tiktok-classroom-2d
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_TYPE
+        value: local
+      - key: AUTOPILOT
+        value: "true"
+      - key: AUTO_KICK_ON_SWIPE
+        value: "true"
+      - key: MAX_CLASS_CAPACITY
+        value: "30"
+      - key: REVEAL_DELAY
+        value: "12"

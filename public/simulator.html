@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bộ Giả Lập Bình Luận TikTok LIVE</title>
+  <link rel="stylesheet" href="/css/simulator.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="sim-container">
+    <div class="header">
+      <div>
+        <h1>🧪 TikTok LIVE Comment Simulator</h1>
+        <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Thử nghiệm bình luận JOIN, trả lời A/B/C/D và xem phản hồi thời gian thực</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span class="badge-mode">CHẾ ĐỘ THỬ NGHIỆM</span>
+        <div class="nav-links">
+          <a href="/game" target="_blank" class="nav-link">🎮 Mở Game View</a>
+          <a href="/admin" target="_blank" class="nav-link">⚙️ Quản Trị</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Cột trái: Điều khiển bình luận -->
+      <div class="card">
+        <h2>💬 Gửi Bình Luận Thử Nghiệm</h2>
+
+        <div class="form-group">
+          <label>Tên tài khoản TikTok (Username):</label>
+          <input type="text" id="txt-username" placeholder="Ví dụ: nguyen_van_a">
+        </div>
+
+        <div class="form-group">
+          <label>Nội dung bình luận:</label>
+          <input type="text" id="txt-comment" placeholder="Ví dụ: JOIN, A, B, C, D...">
+        </div>
+
+        <div class="form-group">
+          <label>Link ảnh đại diện (Avatar URL - Tùy chọn):</label>
+          <input type="text" id="txt-avatar" placeholder="https://... (hoặc để trống để tự tạo avatar tròn)">
+        </div>
+
+        <button class="btn-primary" id="btn-send">Gửi Bình Luận</button>
+
+        <div style="margin-top: 20px;">
+          <label>Lệnh nhanh:</label>
+          <div class="quick-btn-group">
+            <button class="btn-quick" data-cmd="JOIN">JOIN (Vào lớp)</button>
+            <button class="btn-quick" data-cmd="VÀO LỚP">VÀO LỚP</button>
+            <button class="btn-quick" data-cmd="A">Đáp án A</button>
+            <button class="btn-quick" data-cmd="B">Đáp án B</button>
+            <button class="btn-quick" data-cmd="C">Đáp án C</button>
+            <button class="btn-quick" data-cmd="D">Đáp án D</button>
+            <button class="btn-quick" data-cmd="ĐÚNG">ĐÚNG</button>
+            <button class="btn-quick" data-cmd="SAI">SAI</button>
+            <button class="btn-quick" data-cmd="TOP">TOP (Xem BXH)</button>
+            <button class="btn-quick" data-cmd="HELP">HELP (Trợ giúp)</button>
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #334155; margin: 24px 0;">
+
+        <h2>⚡ Tự Động Hóa & Kiểm Thử Tải Lớn</h2>
+        <div style="background: rgba(14, 165, 233, 0.1); border-left: 3px solid #0ea5e9; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; color: #94a3b8; line-height: 1.4;">
+          💡 <b>Cơ chế Tự Động Out Lớp:</b> Người xem livestream không cần gõ lệnh. Khi họ lướt sang video khác (không trả lời câu hỏi), hệ thống sẽ <b>tự động phát hiện</b> khi hết giờ câu hỏi, mời ra khỏi lớp, xóa khỏi BXH và đưa bạn từ hàng chờ vào thay!
+        </div>
+        <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; color: #6ee7b7; line-height: 1.4;">
+          ⚡ <b>Học Sinh Giả Lập Tự Động Trả Lời:</b> Mỗi khi câu hỏi mới xuất hiện, tất cả học sinh ảo trong lớp sẽ <b>tự động giơ tay & chọn đáp án A, B, C, D ngẫu nhiên</b> với độ trễ tự nhiên (không cần bấm nút thủ công)!
+        </div>
+        <button class="btn-batch" id="btn-batch-join">👥 Cho 10 Học Sinh Ảo Vào Lớp</button>
+        <button class="btn-batch" id="btn-batch-join-30" style="background: #0ea5e9;">🚀 Lấp Đầy 30 Học Sinh Kèm Avatar</button>
+        <button class="btn-batch" id="btn-batch-clear-bots" style="background: #d97706;">🤖🧹 Xóa Toàn Bộ Học Sinh Ảo (Giữ Lại Người Xem Thật)</button>
+        <button class="btn-batch" id="btn-batch-leave" style="background: #e11d48;">📱 Giả Lập 1 Học Sinh Lướt Live (Tự Động Out & Hàng Chờ Vào)</button>
+        <button class="btn-batch" id="btn-batch-reset" style="background: #475569; margin-top: 8px;">🧹 Làm Trống Toàn Bộ (Reset Hết)</button>
+      </div>
+
+      <!-- Cột phải: Nhật ký thời gian thực -->
+      <div class="card">
+        <h2>📋 Nhật Ký Sự Kiện Thời Gian Thực</h2>
+        <div class="log-box" id="log-box">
+          <div class="log-entry">
+            <span class="log-time">[Hệ thống]</span>
+            <span class="log-text">Sẵn sàng nhận sự kiện bình luận...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/simulator.js"></script>
+</body>
+</html>

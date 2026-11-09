@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lớp Học 2D Tương Tác TikTok LIVE - Trung Tâm Điều Khiển</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 20%, #1e293b, #0b0f19 80%);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 14px;
+    }
+    p.subtitle {
+      color: #94a3b8;
+      font-size: 16px;
+      max-width: 650px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: left;
+    }
+    .portal-card {
+      background: #131d31;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .portal-card:hover {
+      transform: translateY(-6px);
+      border-color: #38bdf8;
+      box-shadow: 0 12px 30px rgba(56, 189, 248, 0.2);
+    }
+    .card-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .card-btn {
+      display: inline-block;
+      text-align: center;
+      background: #0284c7;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .portal-card:hover .card-btn {
+      background: #0ea5e9;
+    }
+    footer {
+      margin-top: 50px;
+      color: #64748b;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">TIKTOK LIVE INTERACTIVE ENGINE</div>
+    <h1>GAME 2D LỚP HỌC TƯƠNG TÁC TIKTOK LIVE</h1>
+    <p class="subtitle">
+      Mô phỏng lớp học hoạt hình trực tiếp: Người xem livestream bình luận để vào lớp, ngồi tại bàn học 2D, nhận câu hỏi từ giáo viên AI, tranh tài trên bảng xếp hạng thời gian thực.
+    </p>
+
+    <div class="cards-grid">
+      <!-- Card 1: Game View -->
+      <a href="/game" class="portal-card" target="_blank">
+        <div>
+          <div class="card-icon">🎮</div>
+          <div class="card-title">Màn Hình Game Lớp Học</div>
+          <div class="card-desc">
+            Không gian lớp học 2D Phaser 3 mượt mà với giáo viên AI, 24 bàn học sinh, bảng đen và bảng xếp hạng. Tối ưu cho OBS Studio nguồn 9:16 hoặc 16:9.
+          </div>
+        </div>
+        <div class="card-btn">Mở Game View ➜</div>
+      </a>
+
+      <!-- Card 2: Admin Dashboard -->
+      <a href="/admin" class="portal-card" target="_blank">
+        <div>
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Bảng Quản Trị Tiết Học</div>
+          <div class="card-desc">
+            Kiểm soát vòng đời câu hỏi, chuyển tiết, tạm dừng, công bố đáp án, tích hợp mô hình AI tạo câu hỏi tự động và ngân hàng 15 môn học.
+          </div>
+        </div>
+        <div class="card-btn" style="background: #10b981;">Vào Quản Trị ➜</div>
+      </a>
+
+      <!-- Card 3: Live Simulator -->
+      <a href="/simulator" class="portal-card" target="_blank">
+        <div>
+          <div class="card-icon">🧪</div>
+          <div class="card-title">Bộ Giả Lập TikTok LIVE</div>
+          <div class="card-desc">
+            Thử nghiệm không cần TikTok thật: Giả lập bình luận JOIN, trả lời trắc nghiệm, tạo đồng loạt 10 học sinh ảo để kiểm thử tải lớn.
+          </div>
+        </div>
+        <div class="card-btn" style="background: #8b5cf6;">Mở Bộ Giả Lập ➜</div>
+      </a>
+    </div>
+
+    <footer>
+      Hệ thống phát triển với HTML5, Phaser 3, Node.js, Socket.IO & Microsoft SQL Server.
+    </footer>
+  </div>
+</body>
+</html>
