@@ -33,6 +33,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const game = new Phaser.Game(config);
   window.phaserGame = game;
 
+  // Xóa bỏ triệt để bất kỳ khung bật âm thanh nào nếu còn sót lại do cache
+  const staleOverlay = document.getElementById('audio-unlock-overlay');
+  if (staleOverlay) staleOverlay.remove();
+  const staleBtn = document.getElementById('btn-unlock-audio');
+  if (staleBtn) staleBtn.remove();
+
   // Tự động kích hoạt âm thanh Web Audio & TTS
   const triggerAudio = () => {
     if (window.soundManager) {

@@ -4,9 +4,12 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node --watch server.js",
+    "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node test/systemTest.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [],
   "author": "",
