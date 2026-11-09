@@ -167,7 +167,8 @@ class StudentSprite extends Phaser.GameObjects.Container {
       fontFamily: 'Arial, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#ffffff'
+      color: '#ffffff',
+      resolution: 2
     }).setOrigin(0.5);
     this.avatarContainer.add(this.avatarInitial);
 
@@ -183,15 +184,17 @@ class StudentSprite extends Phaser.GameObjects.Container {
         img.onload = () => {
           if (this.scene && this.scene.textures && !this.scene.textures.exists(textureKey)) {
             const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
+            canvas.width = 128;
+            canvas.height = 128;
             const ctx = canvas.getContext('2d');
-            // Cắt bo tròn ảnh đại diện
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            // Cắt bo tròn ảnh đại diện 128x128 siêu sắc nét
             ctx.beginPath();
-            ctx.arc(32, 32, 30, 0, Math.PI * 2, true);
+            ctx.arc(64, 64, 60, 0, Math.PI * 2, true);
             ctx.closePath();
             ctx.clip();
-            ctx.drawImage(img, 0, 0, 64, 64);
+            ctx.drawImage(img, 0, 0, 128, 128);
 
             this.scene.textures.addCanvas(textureKey, canvas);
             if (this.active) this.renderAvatarImage(textureKey);
@@ -228,12 +231,14 @@ class StudentSprite extends Phaser.GameObjects.Container {
       fontFamily: 'Arial, sans-serif',
       fontSize: '10px',
       fontStyle: 'bold',
-      color: '#ffffff'
+      color: '#ffffff',
+      resolution: 2
     }).setOrigin(0.5);
 
     // Vương miện cho TOP 1, 2, 3
     this.crownText = this.scene.add.text(0, -36, '👑', {
-      fontSize: '15px'
+      fontSize: '15px',
+      resolution: 2
     }).setOrigin(0.5).setVisible(false);
 
     this.badge.add(this.badgeBg);
@@ -247,7 +252,8 @@ class StudentSprite extends Phaser.GameObjects.Container {
       fontStyle: 'bold',
       color: '#ffd700',
       stroke: '#000000',
-      strokeThickness: 2
+      strokeThickness: 2,
+      resolution: 2
     }).setOrigin(0.5);
     this.add(this.scorePill);
   }
@@ -269,7 +275,8 @@ class StudentSprite extends Phaser.GameObjects.Container {
       fontStyle: 'bold',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 2
+      strokeThickness: 2,
+      resolution: 2
     }).setOrigin(0.5);
     this.answerBubble.add(this.answerText);
 

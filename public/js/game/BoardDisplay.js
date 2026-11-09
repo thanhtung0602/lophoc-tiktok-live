@@ -66,7 +66,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
       fontFamily: 'Arial, sans-serif',
       fontSize: '13px',
       fontStyle: 'bold',
-      color: '#ffffff'
+      color: '#ffffff',
+      resolution: 2
     }).setOrigin(0.5);
     this.subjectBadge.add(this.subjectText);
 
@@ -77,7 +78,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
       fontStyle: 'bold',
       color: '#f1f2f6',
       align: 'center',
-      wordWrap: { width: this.boardWidth - 40 }
+      wordWrap: { width: this.boardWidth - 40 },
+      resolution: 2
     }).setOrigin(0.5, 0);
     this.add(this.questionText);
 
@@ -98,7 +100,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
       fontFamily: 'Arial, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#ffd700'
+      color: '#ffd700',
+      resolution: 2
     }).setOrigin(0.5);
     this.add(this.timerText);
 
@@ -107,7 +110,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
       fontFamily: 'Arial, sans-serif',
       fontSize: '10px',
       fontStyle: 'bold',
-      color: '#a7f3d0'
+      color: '#a7f3d0',
+      resolution: 2
     }).setOrigin(0.5);
     this.add(this.boardInstructionText);
   }
@@ -173,7 +177,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
           fontFamily: 'Arial, sans-serif',
           fontSize: '14px',
           fontStyle: 'bold',
-          color: '#ffffff'
+          color: '#ffffff',
+          resolution: 2
         }).setOrigin(0.5);
 
         // Nội dung đáp án
@@ -182,7 +187,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
           fontSize: '13px',
           fontStyle: 'bold',
           color: '#ffffff',
-          wordWrap: { width: cardW - 50 }
+          wordWrap: { width: cardW - 50 },
+          resolution: 2
         }).setOrigin(0, 0.5);
 
         card.add(cardBg);
@@ -204,7 +210,8 @@ class BoardDisplay extends Phaser.GameObjects.Container {
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',
         fontStyle: 'bold',
-        color: '#ffd700'
+        color: '#ffd700',
+        resolution: 2
       }).setOrigin(0.5);
       this.optionsContainer.add(guideText);
     }

@@ -121,7 +121,8 @@ class TeacherSprite extends Phaser.GameObjects.Container {
       fontFamily: 'Arial, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#ffd700'
+      color: '#ffd700',
+      resolution: 2
     }).setOrigin(0.5);
     this.nametag.add(bgName);
     this.nametag.add(textName);
@@ -138,7 +139,8 @@ class TeacherSprite extends Phaser.GameObjects.Container {
       fontStyle: 'bold',
       color: '#1e293b',
       align: 'center',
-      wordWrap: { width: 140 }
+      wordWrap: { width: 140 },
+      resolution: 2
     }).setOrigin(0.5);
 
     this.speechBubble.add(this.bubbleBg);

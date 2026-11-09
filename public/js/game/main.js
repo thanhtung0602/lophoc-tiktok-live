@@ -16,16 +16,30 @@ window.addEventListener('DOMContentLoaded', () => {
     gameHeight = 720;
   }
 
+  // Cấu hình đồ họa siêu sắc nét Full HD / 2x Retina
+  const dpr = Math.max(window.devicePixelRatio || 1, 2);
+
   const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
     width: gameWidth,
     height: gameHeight,
+    resolution: dpr, // Tăng mật độ điểm ảnh lên 2x giúp đồ họa, bảng và chữ nét căng trên điện thoại
     backgroundColor: isOverlay ? 'transparent' : '#fbf6e2',
     transparent: isOverlay,
+    roundPixels: true,
+    render: {
+      antialias: true,
+      antialiasGL: true,
+      roundPixels: true,
+      pixelArt: false,
+      powerPreference: 'high-performance'
+    },
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: gameWidth,
+      height: gameHeight
     },
     scene: [ClassroomScene]
   };

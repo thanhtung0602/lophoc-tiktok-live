@@ -48,13 +48,15 @@ class ClassroomScene extends Phaser.Scene {
 
     // 6. Liên kết âm thanh và giáo viên nói
     if (window.soundManager) {
-      window.soundManager.onTeacherSpeakingChange = (speaking) => {
+      this.teacherSpeakingHandler = (speaking) => {
         this.teacher.setSpeaking(speaking);
       };
+      window.soundManager.onTeacherSpeakingChange = this.teacherSpeakingHandler;
     }
 
     // Xử lý resize layout
     this.scale.on('resize', this.handleResize, this);
+    this.events.once('shutdown', this.handleShutdown, this);
   }
 
   drawClassroomBackground(width, height, isPortrait) {
@@ -107,7 +109,8 @@ class ClassroomScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#ffffff'
+      color: '#ffffff',
+      resolution: 2
     }).setOrigin(0.5);
     banner.add(bBg);
     banner.add(bText);
@@ -153,7 +156,8 @@ class ClassroomScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif',
       fontSize: '9px',
       fontStyle: 'bold',
-      color: '#38bdf8'
+      color: '#38bdf8',
+      resolution: 2
     }).setOrigin(0.5);
     doorSign.add(signBg);
     doorSign.add(signText);
@@ -165,7 +169,8 @@ class ClassroomScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#ffd700',
       stroke: '#000000',
-      strokeThickness: 2
+      strokeThickness: 2,
+      resolution: 2
     }).setOrigin(0.5);
   }
 
@@ -238,11 +243,7 @@ class ClassroomScene extends Phaser.Scene {
 
       // Đồng bộ danh sách học sinh hiện có (không cần animation đi bộ nếu đã ở trong lớp)
       if (data.students && Array.isArray(data.students)) {
-        data.students.forEach(st => {
-          if (!this.studentSprites.has(st.username) && st.deskIndex !== -1) {
-            this.addStudentToDesk(st, false);
-          }
-        });
+        this.syncStudents(data.students);
       }
     });
 
@@ -274,21 +275,20 @@ class ClassroomScene extends Phaser.Scene {
     // 6. Công bố kết quả và đáp án
     this.socket.on('question:revealed', (data) => {
       this.board.revealAnswer(data.correctAnswer, data.explanation);
+      const correctStudents = Array.isArray(data.correctStudents) ? data.correctStudents : [];
+      const correctUsernames = new Set(correctStudents.map(item => item.username));
       
       // Cho học sinh đúng ăn mừng và cập nhật điểm tích lũy
-      if (data.correctStudents) {
-        data.correctStudents.forEach(item => {
-          const sprite = this.studentSprites.get(item.username);
-          if (sprite) {
-            sprite.setCorrect(item.pointsAwarded, item.cumulativeScore);
-          }
-        });
-      }
+      correctStudents.forEach(item => {
+        const sprite = this.studentSprites.get(item.username);
+        if (sprite) {
+          sprite.setCorrect(item.pointsAwarded, item.cumulativeScore);
+        }
+      });
 
       // Đánh dấu sai cho các học sinh trả lời khác
       this.studentSprites.forEach((sprite, uname) => {
-        const answered = data.correctStudents.find(c => c.username === uname);
-        if (!answered && sprite.raisedArm.visible) {
+        if (!correctUsernames.has(uname) && sprite.raisedArm.visible) {
           sprite.setWrong();
         }
       });
@@ -302,7 +302,7 @@ class ClassroomScene extends Phaser.Scene {
       this.teacher.playPraiseAnimation();
 
       // Hiệu ứng pháo hoa giấy rực rỡ (Confetti) khi có người trả lời đúng
-      if (data.correctStudents && data.correctStudents.length > 0) {
+      if (correctStudents.length > 0) {
         this.triggerCelebrationConfetti();
       }
     });
@@ -343,24 +343,20 @@ class ClassroomScene extends Phaser.Scene {
         const doorY = wallHeight + 5;
 
         // Bàn này tạm thời đánh dấu không có người ngồi
-        if (deskIdx !== undefined && this.emptyDeskVisuals && this.emptyDeskVisuals[deskIdx]) {
-          this.emptyDeskVisuals[deskIdx].occupied = false;
-        }
+        this.releaseDesk(deskIdx, false);
 
         if (typeof sprite.playWalkExit === 'function') {
           sprite.playWalkExit(doorX, doorY, () => {
             // Khi đã ra tới cửa, nếu bàn này vẫn chưa có ai ngồi vào thì hiện lại số bàn #X
             if (deskIdx !== undefined && this.emptyDeskVisuals && this.emptyDeskVisuals[deskIdx]) {
               if (!this.emptyDeskVisuals[deskIdx].occupied) {
-                this.emptyDeskVisuals[deskIdx].badgeContainer.setVisible(true);
+                this.releaseDesk(deskIdx);
               }
             }
             sprite.destroy();
           });
         } else {
-          if (deskIdx !== undefined && this.emptyDeskVisuals && this.emptyDeskVisuals[deskIdx]) {
-            this.emptyDeskVisuals[deskIdx].badgeContainer.setVisible(true);
-          }
+          this.releaseDesk(deskIdx);
           sprite.destroy();
         }
       }
@@ -438,7 +434,8 @@ class ClassroomScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif',
       fontSize: '15px',
       fontStyle: 'bold',
-      color: '#ffd700'
+      color: '#ffd700',
+      resolution: 2
     }).setOrigin(0.5);
     this.periodSummaryModal.add(titleText);
 
@@ -446,7 +443,8 @@ class ClassroomScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#94a3b8'
+      color: '#94a3b8',
+      resolution: 2
     }).setOrigin(0.5);
     this.periodSummaryModal.add(subTitle);
 
@@ -472,7 +470,8 @@ class ClassroomScene extends Phaser.Scene {
         fontFamily: 'Arial, sans-serif',
         fontSize: '10px',
         fontStyle: 'bold',
-        color: cfg.rank === 1 ? '#f1c40f' : (cfg.rank === 2 ? '#bdc3c7' : '#e67e22')
+        color: cfg.rank === 1 ? '#f1c40f' : (cfg.rank === 2 ? '#bdc3c7' : '#e67e22'),
+        resolution: 2
       }).setOrigin(0.5);
       col.add(rTag);
 
@@ -482,7 +481,8 @@ class ClassroomScene extends Phaser.Scene {
         fontFamily: 'Arial, sans-serif',
         fontSize: '12px',
         fontStyle: 'bold',
-        color: '#ffffff'
+        color: '#ffffff',
+        resolution: 2
       }).setOrigin(0.5);
       col.add(nText);
 
@@ -491,7 +491,8 @@ class ClassroomScene extends Phaser.Scene {
         fontFamily: 'Arial, sans-serif',
         fontSize: '14px',
         fontStyle: 'bold',
-        color: '#2ecc71'
+        color: '#2ecc71',
+        resolution: 2
       }).setOrigin(0.5);
       col.add(sText);
 
@@ -503,7 +504,8 @@ class ClassroomScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif',
       fontSize: '12px',
       fontStyle: 'bold',
-      color: '#38bdf8'
+      color: '#38bdf8',
+      resolution: 2
     }).setOrigin(0.5);
     this.periodSummaryModal.add(this.recessText);
 
@@ -660,16 +662,27 @@ class ClassroomScene extends Phaser.Scene {
   addStudentToDesk(student, animate = true) {
     if (!student || !student.username) return;
 
+    const deskIdx = student.deskIndex;
+    if (!Number.isInteger(deskIdx) || deskIdx < 0 || deskIdx >= this.deskPositions.length) return;
+
     // Nếu học sinh đã có trên màn hình nhưng được đổi bàn (ví dụ từ hàng chờ vào bàn trống)
     if (this.studentSprites.has(student.username)) {
       const oldSprite = this.studentSprites.get(student.username);
-      if (oldSprite && oldSprite.deskIndex === student.deskIndex) return;
-      if (oldSprite) oldSprite.destroy();
+      if (oldSprite && oldSprite.deskIndex === deskIdx) {
+        const score = student.score !== undefined
+          ? student.score
+          : (student.currentScore !== undefined ? student.currentScore : student.cumulativeScore);
+        if (score !== undefined && typeof oldSprite.updateScore === 'function') {
+          oldSprite.updateScore(score);
+        }
+        return;
+      }
+      if (oldSprite) {
+        this.releaseDesk(oldSprite.deskIndex);
+        oldSprite.destroy();
+      }
       this.studentSprites.delete(student.username);
     }
-
-    const deskIdx = student.deskIndex;
-    if (deskIdx === undefined || deskIdx === -1 || deskIdx >= this.deskPositions.length) return;
 
     const pos = this.deskPositions[deskIdx];
     const isPortrait = this.scale.height > this.scale.width;
@@ -702,6 +715,35 @@ class ClassroomScene extends Phaser.Scene {
     }
   }
 
+  syncStudents(students) {
+    const seatedStudents = students.filter(student =>
+      student &&
+      student.username &&
+      Number.isInteger(student.deskIndex) &&
+      student.deskIndex >= 0 &&
+      student.deskIndex < this.deskPositions.length
+    );
+    const seatedUsernames = new Set(seatedStudents.map(student => student.username));
+
+    this.studentSprites.forEach((sprite, username) => {
+      if (!seatedUsernames.has(username)) {
+        this.studentSprites.delete(username);
+        this.releaseDesk(sprite.deskIndex);
+        sprite.destroy();
+      }
+    });
+
+    seatedStudents.forEach(student => this.addStudentToDesk(student, false));
+  }
+
+  releaseDesk(deskIdx, showBadge = true) {
+    if (!Number.isInteger(deskIdx) || !this.emptyDeskVisuals || !this.emptyDeskVisuals[deskIdx]) return;
+
+    const desk = this.emptyDeskVisuals[deskIdx];
+    desk.occupied = false;
+    if (showBadge) desk.badgeContainer.setVisible(true);
+  }
+
   updatePodiumCrowns(topLeaderboard) {
     // Đặt lại huy hiệu cho tất cả học sinh
     this.studentSprites.forEach(sprite => sprite.setTopRank(0));
@@ -716,6 +758,24 @@ class ClassroomScene extends Phaser.Scene {
 
   handleResize(gameSize) {
     // Tự động căn chỉnh khi kích thước thay đổi
+  }
+
+  handleShutdown() {
+    this.scale.off('resize', this.handleResize, this);
+
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    if (
+      window.soundManager &&
+      window.soundManager.onTeacherSpeakingChange === this.teacherSpeakingHandler
+    ) {
+      window.soundManager.onTeacherSpeakingChange = null;
+    }
+    this.teacherSpeakingHandler = null;
   }
 }
 
