@@ -20,3 +20,7 @@ services:
         value: "30"
       - key: REVEAL_DELAY
         value: "12"
+      - key: TIKTOK_CONNECT_MODE
+        value: live
+      - key: TIKTOK_USERNAME
+        value: camsisi0

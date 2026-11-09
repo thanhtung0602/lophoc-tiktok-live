@@ -18,6 +18,7 @@ class TikTokConnector extends EventEmitter {
         clean = clean.split('tiktok.com/@')[1].split('/')[0].split('?')[0];
       }
       this.username = clean;
+      this.mode = 'live'; // Chuyển sang live khi có target username
     }
 
     // Nếu đang có kết nối cũ thì ngắt trước khi kết nối mới
@@ -36,27 +37,41 @@ class TikTokConnector extends EventEmitter {
     }
 
     try {
-      const { WebcastPushConnection } = require('tiktok-live-connector');
+      const tlc = require('tiktok-live-connector');
+      const ConnectorClass = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default;
+      if (!ConnectorClass) {
+        throw new Error('Không tìm thấy lớp kết nối TikTokLiveConnection trong thư viện tiktok-live-connector!');
+      }
+
       console.log(`[TikTokConnector] Đang kết nối đến TikTok LIVE của @${this.username}...`);
-      this.liveConnection = new WebcastPushConnection(this.username, {
+      this.liveConnection = new ConnectorClass(this.username, {
         processInitialData: false,
         enableExtendedGiftInfo: false,
-        enableWebsocketUpgrade: true,
-        requestPollingIntervalMs: 1000
+        fetchRoomInfoOnConnect: true
       });
 
       const state = await this.liveConnection.connect();
       this.isConnected = true;
-      console.log(`[TikTokConnector] ĐÃ KẾT NỐI THÀNH CÔNG TikTok LIVE Room ID: ${state.roomId}`);
+      console.log(`[TikTokConnector] ✅ ĐÃ KẾT NỐI THÀNH CÔNG TikTok LIVE Room ID: ${state.roomId} (@${this.username})`);
       this.emit('connected', { mode: 'live', roomId: state.roomId, username: this.username });
 
       this.liveConnection.on('chat', (data) => {
-        const avatar = data.profilePictureUrl || (data.userDetails && data.userDetails.profilePictureUrls ? data.userDetails.profilePictureUrls[0] : null);
+        const comment = data.comment || data.content || '';
+        const user = data.user || {};
+        const username = data.uniqueId || user.displayId || user.uniqueId || user.id || 'viewer';
+        const displayName = data.nickname || user.nickname || username;
+        const avatar = data.profilePictureUrl ||
+          (user.avatarThumb && user.avatarThumb.urlListList && user.avatarThumb.urlListList[0]) ||
+          (user.avatarMedium && user.avatarMedium.urlListList && user.avatarMedium.urlListList[0]) ||
+          (data.userDetails && data.userDetails.profilePictureUrls ? data.userDetails.profilePictureUrls[0] : null);
+
+        console.log(`[TikTok LIVE Chat] 💬 @${username} (${displayName}): "${comment}"`);
+
         this.processIncomingComment({
-          userId: data.userId || data.uniqueId,
-          username: data.uniqueId,
-          displayName: data.nickname || data.uniqueId,
-          comment: data.comment,
+          userId: data.userId || user.id || username,
+          username,
+          displayName,
+          comment,
           avatarUrl: avatar,
           timestamp: Date.now(),
           isBot: false // Người xem thật trên TikTok LIVE
@@ -64,17 +79,17 @@ class TikTokConnector extends EventEmitter {
       });
 
       this.liveConnection.on('like', (data) => {
-        const u = data.uniqueId || data.userId;
+        const u = data.uniqueId || (data.user && (data.user.displayId || data.user.uniqueId || data.user.id));
         if (u) this.emit('player:activity', { username: u });
       });
 
       this.liveConnection.on('gift', (data) => {
-        const u = data.uniqueId || data.userId;
+        const u = data.uniqueId || (data.user && (data.user.displayId || data.user.uniqueId || data.user.id));
         if (u) this.emit('player:activity', { username: u });
       });
 
       this.liveConnection.on('member', (data) => {
-        const u = data.uniqueId || data.userId;
+        const u = data.uniqueId || (data.user && (data.user.displayId || data.user.uniqueId || data.user.id));
         if (u) this.emit('player:activity', { username: u });
       });
 
@@ -84,13 +99,19 @@ class TikTokConnector extends EventEmitter {
         this.emit('disconnected');
       });
 
+      this.liveConnection.on('streamEnd', () => {
+        this.isConnected = false;
+        console.warn('[TikTokConnector] Phiên TikTok LIVE đã kết thúc.');
+        this.emit('disconnected');
+      });
+
       return true;
     } catch (err) {
       console.warn(`[TikTokConnector] Không thể kết nối trực tiếp phòng LIVE @${this.username}: ${err.message}`);
       console.log('[TikTokConnector] Chuyển đổi an toàn sang chế độ SIMULATOR để sẵn sàng kiểm thử!');
       this.mode = 'mock';
       this.isConnected = true;
-      this.emit('connected', { mode: 'mock', fallback: true });
+      this.emit('connected', { mode: 'mock', fallback: true, error: err.message });
       return false;
     }
   }
@@ -139,12 +160,22 @@ class TikTokConnector extends EventEmitter {
                    cleanUpper === 'VAO LOP' ||
                    cleanUpper === 'VÀO LỚP' ||
                    cleanUpper === 'VAOLOP' ||
+                   cleanUpper === 'VAO' ||
+                   cleanUpper === 'VÀO' ||
                    cleanUpper === 'THAM GIA' ||
                    cleanUpper === 'THAMGIA' ||
+                   cleanUpper === 'DI HOC' ||
+                   cleanUpper === 'ĐI HỌC' ||
                    upper.includes('VÀO LỚP') ||
                    upper.includes('VAO LOP') ||
                    upper.includes('THAM GIA') ||
-                   cleanUpper.startsWith('JOIN');
+                   upper.includes('XIN VÀO') ||
+                   upper.includes('CHO EM VÀO') ||
+                   upper.includes('CHO VÀO') ||
+                   upper.includes('ĐI HỌC') ||
+                   upper.includes('DI HOC') ||
+                   cleanUpper.startsWith('JOIN') ||
+                   cleanUpper.startsWith('VÀO');
 
     if (isJoin) {
       this.emit('player:join', {

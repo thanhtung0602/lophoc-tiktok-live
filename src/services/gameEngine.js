@@ -469,7 +469,12 @@ class GameEngine extends EventEmitter {
 
       const { username, answer } = userData;
       if (!username || answer === undefined) return;
-      const student = this.students.get(username);
+      let student = this.students.get(username);
+      // Nếu người xem chưa gõ JOIN mà trả lời ngay A, B, C, D -> tự động cho vào lớp luôn
+      if (!student) {
+        await this.handlePlayerJoin(userData);
+        student = this.students.get(username);
+      }
       if (!student) return;
 
       if (this.currentQuestionAnswers.has(student.playerId)) {
